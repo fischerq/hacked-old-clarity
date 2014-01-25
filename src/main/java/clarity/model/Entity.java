@@ -46,6 +46,29 @@ public class Entity implements Cloneable {
         return state;
     }
     
+    public Object getProperty(String property){
+    	return state[dtClass.getPropertyIndex(property)];
+    }
+    
+    public Object getProperty(String subclass, String property){
+    	return state[dtClass.getPropertyIndex(subclass+"."+property)];
+    }
+    
+    public Object[] getArrayProperty(String property, int size){
+    	Object[] array = new Object[size];
+    	for(int i = 0; i < size; ++i)
+    		array[i] = state[dtClass.getPropertyIndex(property+String.format(".%04d", i))];
+    	return array;
+    }
+    
+    public Object[] getArrayProperty(String subclass, String property, int size){
+    	Object[] array = new Object[size];
+    	String full_property = subclass+"."+property;
+    	for(int i = 0; i < size; ++i)
+    		array[i] = state[dtClass.getPropertyIndex(full_property+String.format(".%04d", i))];
+    	return array;
+    }
+    
     @Override
     public Entity clone() {
        return CLONER.deepClone(this);
