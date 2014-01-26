@@ -25,6 +25,7 @@ public class MatchAnalysis {
 	public MatchAnalysis(int ID, String file, Writer w){
 		this.file = file;
 		this.w = w;
+		this.ID = ID;
 	}
 
 	
@@ -62,9 +63,9 @@ public class MatchAnalysis {
 	public void initGame(){
 		DTClass dtGRP = match.getDtClasses().forDtName("DT_DOTAGamerulesProxy");
 		Entity e = match.getEntities().getByIndex(match.getEntities().getByClass(dtGRP).iterator().next());
-		int gameID = (int)e.getProperty("DT_DOTAGamerules","m_unMatchID");
+		//int gameID = (int)e.getProperty("DT_DOTAGamerules","m_unMatchID");
 		w.setGame(ID);
-		System.out.println(e);
+		//System.out.println(e);
 		DTClass dtPlayerResource = match.getDtClasses().forDtName("DT_DOTA_PlayerResource");
 		for(Integer i: match.getEntities().getByClass(dtPlayerResource))
 		{
@@ -76,7 +77,7 @@ public class MatchAnalysis {
 				names[j] = (String)namesRaw[j];
 			}
 			w.setPlayers(names);
-			System.out.println(Arrays.toString(names));
+			//System.out.println(Arrays.toString(names));
 		}
 	}
 	
@@ -85,16 +86,14 @@ public class MatchAnalysis {
 	}
 	
 	public void analyseTick(){
-		System.out.println(match.getTick());
+		//System.out.println(match.getTick());
 		DTClass dtGRP = match.getDtClasses().forDtName("DT_DOTAGamerulesProxy");
 		Entity e = match.getEntities().getByIndex(match.getEntities().getByClass(dtGRP).iterator().next());
 		
 		int state = (int) e.getProperty("DT_DOTAGamerules","m_nGameState");
 		//System.out.println("state: " + state);	
 		
-		boolean paused = ((int) e.getProperty("DT_DOTAGamerules","m_iPauseTeam")) >= 2;
-		
-		if(paused)
+		if((int)e.getProperty("DT_DOTAGamerules","m_bGamePaused")!=0)
 			return;
 		
 		if(state == 4 || state == 5)
@@ -129,7 +128,7 @@ public class MatchAnalysis {
 				//System.out.println(i+ " " + Arrays.toString(getPosition(heroes[i]))+" "+heroes[i].getProperty("m_lifeState"));
 			}
 			w.tickPositions(positions);
-			System.out.println(Arrays.toString(heroIDs));
+			//System.out.println(Arrays.toString(heroIDs));
 			//System.out.println(e);
 		}
 	}
