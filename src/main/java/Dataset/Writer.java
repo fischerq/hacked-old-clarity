@@ -130,6 +130,7 @@ public class Writer {
 		for(int i = 0; i<accumulator_size; ++i){
 			tickPositions(new float[10][]);
 		}
+		current_time = 0;
 	}
 	
 	public void finish(){

@@ -25,9 +25,9 @@ public class Main {
 	    }
 	}
 	public static void main(String[] args) {
-		//findReplays(new File("data"));
-		IDs.add(303487989);
-		files.add("303487989.dem");
+		findReplays(new File("data"));
+		//IDs.add(303487989);
+		//files.add("303487989.dem");
 		Writer w = new Writer();
 		for(int i = 0; i < IDs.size(); ++i){
 			System.out.println(i+"/"+IDs.size()+": "+IDs.get(i)+" "+files.get(i));
