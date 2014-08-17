@@ -3,16 +3,14 @@ package Dataset;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class Writer {
 	
 	PrintWriter games;
 	PrintWriter players;
 	PrintWriter position_data;
-	PrintWriter position_data_raw;
+	//PrintWriter position_data_raw;
+	PrintWriter death_data;
 	
 	int nextGameID;
 	int nextPlayerID;
@@ -22,19 +20,22 @@ public class Writer {
 	String[] names;
 	
 	
-	int accumulator_size = 15;
 	int time_step = 2; //updating every 2 ticks
 	
 	int current_time = 0;
-	Deque<float[][]> accPast;
-	Queue<float[][]> accFuture;
-		
+	int saving_interval = 30;
+	int saving_timer;
+	
+	boolean last_alive[];
+	float[][] last_positions;
+	
 	public Writer(){
 		try {
 			games = new PrintWriter("games.csv", "UTF-8");
 			players = new PrintWriter("players.csv", "UTF-8");
 			position_data = new PrintWriter("position_data.csv", "UTF-8");
-			position_data_raw = new PrintWriter("position_data_raw.csv", "UTF-8");
+			death_data = new PrintWriter("death_data.csv", "UTF-8");
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -44,19 +45,23 @@ public class Writer {
 		}
 		games.println("GameID, SteamGameID");
 		nextGameID = 0;
-		players.println("PlayerID, GameID, Name, Hero");
+		players.println("PlayerID, GameID, Name, Hero, Team");
 		playerIDs = new int[10];
 		nextPlayerID = 0;
-		position_data.println("PlayerID, GameTime, X, Y, DX, DY, AccumulatedPastX, AccumulatedPastY, AccumulatedFutureX, AccumulatedFutureY");
-		position_data_raw.println("PlayerID, GameTime, X, Y");
+		position_data.println("PlayerID, GameTime, X, Y");
+		death_data.println("PlayerID, GameTime, X, Y");
 	}
 	
-	public void setGame(int gameID){
+	public void setGame(String gameID){
 		currentGameID = nextGameID;
 		games.println(nextGameID+", "+gameID);
 		nextGameID++;
-		accPast = new LinkedList<float[][]>();
-		accFuture = new LinkedList<float[][]>();
+		current_time = 0;
+		
+		saving_timer = saving_interval;
+		last_alive = new boolean[10];
+		for(int i = 0; i < 10; ++i)
+			last_alive[i] = false;
 	}
 	
 	public void setPlayers(String[] names){
@@ -74,69 +79,40 @@ public class Writer {
 	}
 	
 	public void tickPositions(float[][] positions){
-		accFuture.add(positions);
-		if(accFuture.size() > accumulator_size)
-		{
-			float[][] current = accFuture.poll();
-			
-			//compute
-			float[][] accPastVal = new float[10][2];
-			float[][] accFutureVal = new float[10][2];
-			
-			for(float[][] s: accPast){
-				for(int i = 0; i < 10; ++i){
-					if(s[i]==null)
-						continue;
-					accPastVal[i][0] += s[i][0]/accPast.size();
-					accPastVal[i][1] += s[i][1]/accPast.size();
-				}
-			}
-			for(float[][] s: accFuture){
-				for(int i = 0; i < 10; ++i){
-					if(s[i]==null)
-						continue;
-					accFutureVal[i][0] += s[i][0]/accFuture.size();
-					accFutureVal[i][1] += s[i][1]/accFuture.size();
-				}
-			}
-			
-			float[][] last = accPast.peekLast();
-			float[][] next = accFuture.peek();
-			float[][] dPos = new float[10][2];
-			for(int i = 0; i < 10; ++i){
-				if(last==null || last[i] == null || next[i] ==null)
-					continue;
-				dPos[i][0] = next[i][0]-last[i][0];
-				dPos[i][1] = next[i][1]-last[i][1];
-			}
-			for(int i = 0; i < 10; ++i)
-			{
-				if(current[i]==null)
-					continue;
-				position_data.println(playerIDs[i]+", "+current_time+", "+current[i][0]+", "+current[i][1]+
-						", "+dPos[i][0]+", "+dPos[i][1]+", "+accPastVal[i][0]+", "+accPastVal[i][1]+", "+accFutureVal[i][0]+", "+accFutureVal[i][1]);
-				position_data_raw.println(playerIDs[i]+", "+current_time+", "+current[i][0]+", "+current[i][1]);
-			}
-			
-			current_time += time_step;
-			accPast.add(current);
-			if(accPast.size()>accumulator_size)
-				accPast.poll();
+		boolean save = false;
+		if(saving_timer >= saving_interval){
+			saving_timer -= saving_interval;
+			save = true;
 		}
+		saving_timer += time_step;
 		
+		for(int i = 0; i < 10; ++i)
+		{
+			if(positions[i]==null)
+				continue;
+			//Saving position data
+			if(save)
+				position_data.println(playerIDs[i]+", "+current_time+", "+positions[i][0]+", "+positions[i][1]);
+		}
+		last_positions = positions;
+		current_time += time_step;		
+	}
+	
+	public void tickAlive(boolean[] alive){
+		for(int i = 0; i < 10; ++i){
+			if(last_alive[i] && ! alive[i])
+				death_data.println(playerIDs[i]+", "+current_time+", "+last_positions[i][0]+", "+last_positions[i][1]);
+		}
+		last_alive = alive;
 	}
 	
 	public void finishGame(){
-		for(int i = 0; i<accumulator_size; ++i){
-			tickPositions(new float[10][]);
-		}
-		current_time = 0;
 	}
 	
 	public void finish(){
 		games.close();
 		players.close();
 		position_data.close();
-		position_data_raw.close();
+		death_data.close();
 	}
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Main {
 
-	static List<Integer> IDs = new ArrayList<Integer>();
+	static List<String> IDs = new ArrayList<String>();
 	static List<String> files = new ArrayList<String>();
 	
 	public static void findReplays(File root)
@@ -16,7 +16,7 @@ public class Main {
 	        if (file.isFile()) {
 	            if(file.getName().endsWith(".dem"))
 	            {
-	            	Main.IDs.add(Integer.parseInt(file.getName().substring(0,file.getName().length()-4)));
+	            	Main.IDs.add(file.getName().substring(0,file.getName().length()-4));
 	            	Main.files.add(file.getAbsolutePath());
 	            }
 	        } else if (file.isDirectory()) {
@@ -25,7 +25,7 @@ public class Main {
 	    }
 	}
 	public static void main(String[] args) {
-		findReplays(new File("data"));
+		findReplays(new File("data/Star Ladder Season 7"));
 		//IDs.add(303487989);
 		//files.add("303487989.dem");
 		Writer w = new Writer();

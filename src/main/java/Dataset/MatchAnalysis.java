@@ -17,12 +17,12 @@ public class MatchAnalysis {
 	
 	String file;
 	Match match;
-	int ID; 
+	String ID; 
 	
 	Writer w;
 	boolean initialisedHeroes = false;
 	
-	public MatchAnalysis(int ID, String file, Writer w){
+	public MatchAnalysis(String ID, String file, Writer w){
 		this.file = file;
 		this.w = w;
 		this.ID = ID;
@@ -95,7 +95,7 @@ public class MatchAnalysis {
 		
 		if((int)e.getProperty("DT_DOTAGamerules","m_bGamePaused")!=0)
 			return;
-		
+		//System.out.println(match.getTick());
 		if(state == 4 || state == 5)
 		{
 			DTClass dtPlayerResource = match.getDtClasses().forDtName("DT_DOTA_PlayerResource");
@@ -118,15 +118,19 @@ public class MatchAnalysis {
 			Object[] heroHandles = e.getArrayProperty("m_hSelectedHero", 10);
 			Entity[] heroes = new Entity[10];
 			float[][] positions = new float[10][];
+			boolean[] alive = new boolean[10];
 			for(int i = 0; i < heroHandles.length; i++)
 			{
 				if(heroIDs[i]==-1)
 					continue;
 				heroes[i] =  match.getEntities().getByHandle((int)heroHandles[i]);
+				alive[i] = (int)heroes[i].getProperty("m_lifeState") == 0;
 				if((int)heroes[i].getProperty("m_lifeState") == 0)
 					positions[i] = getPosition(heroes[i]);
 				//System.out.println(i+ " " + Arrays.toString(getPosition(heroes[i]))+" "+heroes[i].getProperty("m_lifeState"));
 			}
+
+			w.tickAlive(alive);
 			w.tickPositions(positions);
 			//System.out.println(Arrays.toString(heroIDs));
 			//System.out.println(e);
